@@ -4,11 +4,11 @@ services:
     container_name: library-loans-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${DB_USER:-loans}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-loans}
-      POSTGRES_DB: ${DB_NAME:-loans}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: loans
     ports:
-      - '${DB_PORT:-5432}:5432'
+      - '5433:5432'
     volumes:
       - library_loans_pgdata:/var/lib/postgresql/data
     healthcheck:
