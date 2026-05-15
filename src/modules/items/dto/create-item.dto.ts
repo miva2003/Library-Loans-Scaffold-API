@@ -1,39 +1,21 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsISBN, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { ItemType } from '../entities/item.entity';
 
 export class CreateItemDto {
-  @ApiProperty({ example: 'Clean Code' })
+  @ApiProperty({ example: 'LIB-001', maxLength: 32 })
   @IsString()
   @IsNotEmpty()
-  title: string;
-
-  @ApiProperty({ example: 'Robert C. Martin' })
-  @IsString()
-  @IsNotEmpty()
-  author?: string;
-
-  @ApiProperty({ example: '9780132350884' })
-  @IsString()
-  @IsNotEmpty()
+  @MaxLength(32)
   code: string;
 
-  @ApiProperty({ enum: ItemType })
+  @ApiProperty({ example: 'Clean Code', maxLength: 255 })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
+  title: string;
+
+  @ApiProperty({ enum: ItemType, example: ItemType.BOOK })
   @IsEnum(ItemType)
   type: ItemType;
-
-  @ApiProperty({ example: 2008 })
-  @IsInt()
-  @Min(1000)
-  publicationYear?: number;
-
-  @ApiProperty({ example: 5, minimum: 1, default: 1 })
-  @IsInt()
-  @Min(1)
-  quantity: number;
-
-  @ApiPropertyOptional({ example: 'A book about writing clean code' })
-  @IsOptional()
-  @IsString()
-  description?: string;
 }

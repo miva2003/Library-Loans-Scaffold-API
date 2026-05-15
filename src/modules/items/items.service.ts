@@ -1,15 +1,12 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Item } from './entities/item.entity';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { FindItemsDto } from './dto/find-items.dto';
+
+export type ItemWithAvailability = Item & { isAvailable: boolean };
 
 @Injectable()
 export class ItemsService {
@@ -21,61 +18,39 @@ export class ItemsService {
   async create(dto: CreateItemDto): Promise<Item> {
     const existing = await this.itemsRepository.findOne({ where: { code: dto.code } });
     if (existing) {
-      throw new ConflictException(`Item with code ${dto.code} already exists`);
+      throw new ConflictException(`Item with code "${dto.code}" already exists`);
     }
-    const item = this.itemsRepository.create({
-      ...dto,
-      availableQuantity: dto.quantity,
-    });
+    const item = this.itemsRepository.create(dto);
     return this.itemsRepository.save(item);
   }
 
-  async findAll(filters: FindItemsDto): Promise<Item[]> {
-    const qb = this.itemsRepository
-      .createQueryBuilder('item')
-      .where('item.isActive = :isActive', { isActive: true });
+  async findAll(filters?: FindItemsDto): Promise<ItemWithAvailability[]> {
+    const qb = this.baseQueryWithAvailability().where('item.isActive = :isActive', {
+      isActive: true,
+    });
 
-    if (filters.type) {
+    if (filters?.type) {
       qb.andWhere('item.type = :type', { type: filters.type });
     }
 
-    if (filters.search) {
-      qb.andWhere(
-        '(item.title ILIKE :search OR item.author ILIKE :search OR item.isbn ILIKE :search)',
-        { search: `%${filters.search}%` },
-      );
-    }
-
-    if (filters.availableOnly) {
-      qb.andWhere('item.availableQuantity > 0');
-    }
-
-    return qb.getMany();
+    const items = await qb.getMany();
+    return items.map((item) => this.addIsAvailable(item));
   }
 
-  async findOne(id: string): Promise<Item> {
-    const item = await this.itemsRepository.findOne({ where: { id, isActive: true } });
+  async findOne(id: string): Promise<ItemWithAvailability> {
+    const item = await this.baseQueryWithAvailability()
+      .where('item.id = :id', { id })
+      .andWhere('item.isActive = :isActive', { isActive: true })
+      .getOne();
+
     if (!item) {
       throw new NotFoundException(`Item ${id} not found`);
     }
-    return item;
+    return this.addIsAvailable(item);
   }
 
   async update(id: string, dto: UpdateItemDto): Promise<Item> {
     const item = await this.findOne(id);
-
-    if (dto.code && dto.code !== item.code) {
-      const existing = await this.itemsRepository.findOne({ where: { code: dto.code } });
-      if (existing) {
-        throw new ConflictException(`Item with code ${dto.code} already exists`);
-      }
-    }
-
-    if (dto.quantity !== undefined) {
-      const diff = dto.quantity - item.quantity;
-      item.availableQuantity = Math.max(0, item.availableQuantity + diff);
-    }
-
     Object.assign(item, dto);
     return this.itemsRepository.save(item);
   }
@@ -86,26 +61,20 @@ export class ItemsService {
     await this.itemsRepository.save(item);
   }
 
-  async decreaseAvailability(id: string, amount = 1): Promise<void> {
-    const item = await this.itemsRepository.findOne({ where: { id } });
-    if (!item || item.availableQuantity < amount) {
-      throw new BadRequestException(`Item ${id} is not available`);
-    }
-    item.availableQuantity -= amount;
-    await this.itemsRepository.save(item);
+  private baseQueryWithAvailability(): SelectQueryBuilder<Item> {
+    return this.itemsRepository
+      .createQueryBuilder('item')
+      .loadRelationCountAndMap(
+        'item.activeLoansCount',
+        'item.loans',
+        'loan',
+        (qb) =>
+          qb.where('loan.status IN (:...statuses)', { statuses: ['active', 'overdue'] }),
+      );
   }
 
-  async increaseAvailability(id: string, amount = 1): Promise<void> {
-    const item = await this.itemsRepository.findOne({ where: { id } });
-    if (!item) {
-      throw new NotFoundException(`Item ${id} not found`);
-    }
-    item.availableQuantity = Math.min(item.quantity, item.availableQuantity + amount);
-    await this.itemsRepository.save(item);
-  }
-
-  async checkAvailability(id: string): Promise<boolean> {
-    const item = await this.itemsRepository.findOne({ where: { id, isActive: true } });
-    return item ? item.availableQuantity > 0 : false;
+  private addIsAvailable(item: Item): ItemWithAvailability {
+    const count = (item as Item & { activeLoansCount: number }).activeLoansCount ?? 0;
+    return { ...item, isAvailable: count === 0 };
   }
 }
