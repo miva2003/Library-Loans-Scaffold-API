@@ -47,19 +47,19 @@ Abre [http://localhost:3000/api/docs](http://localhost:3000/api/docs) y debería
 
 ## Scripts disponibles
 
-| Script | Descripción |
-|---|---|
-| `npm run start:dev` | Arranca con hot reload. |
-| `npm run start:prod` | Arranca el build de producción (requiere `npm run build` antes). |
-| `npm run build` | Compila TypeScript a `dist/`. |
-| `npm run lint` | ESLint con autofix. |
-| `npm run format` | Prettier. |
-| `npm test` | Tests unitarios. |
-| `npm run test:cov` | Tests con coverage. |
-| `npm run test:e2e` | Tests e2e con `jest-e2e.json`. |
-| `npm run migration:generate src/database/migrations/NombreDeLaMigracion` | Genera migración a partir del diff entre entidades y BD. |
-| `npm run migration:run` | Aplica migraciones pendientes. |
-| `npm run migration:revert` | Revierte la última migración. |
+| Script                                                                     | Descripción                                                        |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `npm run start:dev`                                                      | Arranca con hot reload.                                             |
+| `npm run start:prod`                                                     | Arranca el build de producción (requiere `npm run build` antes). |
+| `npm run build`                                                          | Compila TypeScript a `dist/`.                                     |
+| `npm run lint`                                                           | ESLint con autofix.                                                 |
+| `npm run format`                                                         | Prettier.                                                           |
+| `npm test`                                                               | Tests unitarios.                                                    |
+| `npm run test:cov`                                                       | Tests con coverage.                                                 |
+| `npm run test:e2e`                                                       | Tests e2e con `jest-e2e.json`.                                    |
+| `npm run migration:generate src/database/migrations/NombreDeLaMigracion` | Genera migración a partir del diff entre entidades y BD.           |
+| `npm run migration:run`                                                  | Aplica migraciones pendientes.                                      |
+| `npm run migration:revert`                                               | Revierte la última migración.                                     |
 
 ## Estructura
 
@@ -123,3 +123,7 @@ open ../meditrack-api/docs/enunciado-parcial.md
 Empieza por implementar la entidad `User` y el módulo `auth` (§4.1 del enunciado). Sin auth, los demás endpoints no se pueden probar.
 
 ¡Éxitos!
+
+María Inés Velásquez 
+
+202224325
