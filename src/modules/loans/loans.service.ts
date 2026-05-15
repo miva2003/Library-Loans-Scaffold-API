@@ -48,7 +48,7 @@ export class LoansService {
     const loan = this.loansRepository.create({
       user,
       items,
-      dueDate,
+      dueAT: dueDate,
       status: LoanStatus.ACTIVE,
     });
 
@@ -103,12 +103,12 @@ export class LoansService {
     }
 
     const now = new Date();
-    loan.returnDate = now;
+    loan.returnedAT = now;
     loan.status = LoanStatus.RETURNED;
 
-    if (now > loan.dueDate) {
+    if (now > loan.dueAT) {
       const msPerDay = 1000 * 60 * 60 * 24;
-      const daysLate = Math.ceil((now.getTime() - loan.dueDate.getTime()) / msPerDay);
+      const daysLate = Math.ceil((now.getTime() - loan.dueAT.getTime()) / msPerDay);
       const dailyRate = this.configService.get<number>('loans.dailyFineRate') ?? 0.5;
       loan.fineAmount = daysLate * dailyRate;
     }

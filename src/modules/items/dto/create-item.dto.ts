@@ -11,11 +11,12 @@ export class CreateItemDto {
   @ApiProperty({ example: 'Robert C. Martin' })
   @IsString()
   @IsNotEmpty()
-  author: string;
+  author?: string;
 
   @ApiProperty({ example: '9780132350884' })
-  @IsISBN()
-  isbn: string;
+  @IsString()
+  @IsNotEmpty()
+  code: string;
 
   @ApiProperty({ enum: ItemType })
   @IsEnum(ItemType)
@@ -24,7 +25,7 @@ export class CreateItemDto {
   @ApiProperty({ example: 2008 })
   @IsInt()
   @Min(1000)
-  publicationYear: number;
+  publicationYear?: number;
 
   @ApiProperty({ example: 5, minimum: 1, default: 1 })
   @IsInt()

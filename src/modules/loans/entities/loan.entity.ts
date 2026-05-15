@@ -24,13 +24,13 @@ export class Loan {
   id: string;
 
   @CreateDateColumn()
-  loanDate: Date;
+  loanedAt: Date;
 
   @Column({ type: 'timestamp' })
-  dueDate: Date;
+  dueAT: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  returnDate: Date;
+  returnedAT: Date;
 
   @Column({ type: 'enum', enum: LoanStatus, default: LoanStatus.ACTIVE })
   status: LoanStatus;

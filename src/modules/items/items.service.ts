@@ -19,9 +19,9 @@ export class ItemsService {
   ) {}
 
   async create(dto: CreateItemDto): Promise<Item> {
-    const existing = await this.itemsRepository.findOne({ where: { isbn: dto.isbn } });
+    const existing = await this.itemsRepository.findOne({ where: { code: dto.code } });
     if (existing) {
-      throw new ConflictException(`Item with ISBN ${dto.isbn} already exists`);
+      throw new ConflictException(`Item with code ${dto.code} already exists`);
     }
     const item = this.itemsRepository.create({
       ...dto,
@@ -64,10 +64,10 @@ export class ItemsService {
   async update(id: string, dto: UpdateItemDto): Promise<Item> {
     const item = await this.findOne(id);
 
-    if (dto.isbn && dto.isbn !== item.isbn) {
-      const existing = await this.itemsRepository.findOne({ where: { isbn: dto.isbn } });
+    if (dto.code && dto.code !== item.code) {
+      const existing = await this.itemsRepository.findOne({ where: { code: dto.code } });
       if (existing) {
-        throw new ConflictException(`Item with ISBN ${dto.isbn} already exists`);
+        throw new ConflictException(`Item with code ${dto.code} already exists`);
       }
     }
 

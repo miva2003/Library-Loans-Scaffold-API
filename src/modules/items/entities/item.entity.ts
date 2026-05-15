@@ -10,8 +10,7 @@ import {
 export enum ItemType {
   BOOK = 'book',
   MAGAZINE = 'magazine',
-  DVD = 'dvd',
-  NEWSPAPER = 'newspaper',
+  EQUIPMENT = 'equipment',
 }
 
 @Entity('items')
@@ -26,7 +25,7 @@ export class Item {
   author: string;
 
   @Column({ unique: true })
-  isbn: string;
+  code: string;
 
   @Column({ type: 'enum', enum: ItemType })
   type: ItemType;
