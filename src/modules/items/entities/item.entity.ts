@@ -2,10 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToMany,
+  Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Loan } from '../../loans/entities/loan.entity';
 
 export enum ItemType {
   BOOK = 'book',
@@ -18,36 +20,21 @@ export class Item {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column()
-  author: string;
-
-  @Column({ unique: true })
+  @Index()
+  @Column({ type: 'varchar', length: 32, unique: true })
   code: string;
 
   @Column({ type: 'enum', enum: ItemType })
   type: ItemType;
 
-  @Column()
-  publicationYear: number;
-
-  @Column({ nullable: true })
-  description: string;
-
-  @Column({ default: 1 })
-  quantity: number;
-
-  @Column({ default: 1 })
-  availableQuantity: number;
-
   @Column({ default: true })
   isActive: boolean;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  @ManyToMany('Loan', 'items')
-  loans: any[];
+  @OneToMany(() => Loan, (loan) => loan.item)
+  loans: Loan[];
 
   @CreateDateColumn()
   createdAt: Date;

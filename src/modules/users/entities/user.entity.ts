@@ -6,6 +6,7 @@ import {
   BeforeInsert,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
@@ -21,17 +22,18 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Index()
+  @Column({ unique: true, length: 255 })
   email: string;
 
-  @Column()
+  @Column({ length: 255 })
   @Exclude()
   passwordHash: string;
 
-  @Column()
+  @Column({ length: 100 })
   firstName: string;
 
-  @Column()
+  @Column({ length: 100 })
   lastName: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.MEMBER })

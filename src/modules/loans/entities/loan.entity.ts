@@ -2,8 +2,8 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
+  Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -15,22 +15,24 @@ export enum LoanStatus {
   ACTIVE = 'active',
   RETURNED = 'returned',
   OVERDUE = 'overdue',
-  CANCELLED = 'cancelled',
+  LOST = 'lost',
 }
 
+@Index(['item', 'status'])
+@Index(['user', 'status'])
 @Entity('loans')
 export class Loan {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   loanedAt: Date;
 
-  @Column({ type: 'timestamp' })
-  dueAT: Date;
+  @Column({ type: 'timestamptz' })
+  dueAt!: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  returnedAT: Date;
+  @Column({ type: 'timestamptz', nullable: true })
+  returnedAt!: Date;
 
   @Column({ type: 'enum', enum: LoanStatus, default: LoanStatus.ACTIVE })
   status: LoanStatus;
@@ -50,12 +52,13 @@ export class Loan {
   @Column({ type: 'text', nullable: true })
   notes: string;
 
-  @ManyToOne(() => User, (user) => user.loans)
+  @ManyToOne(() => User, (user) => user.loans, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToMany(() => Item, (item) => item.loans)
-  @JoinTable()
-  items: Item[];
+  @ManyToOne(() => Item, (item) => item.loans, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'itemId' })
+  item!: Item;
 
   @CreateDateColumn()
   createdAt: Date;
