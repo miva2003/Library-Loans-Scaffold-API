@@ -1,129 +1,153 @@
-# Library Loans API — Scaffold de examen parcial
+# Library Loans API — Parcial ISIS 3710
 
-Scaffold base para el examen parcial del curso **ISIS 3710 — Programación con Tecnologías Web**.
-
-> Este repositorio es el **punto de partida**. El enunciado completo será compartido durante el examen. El proyecto de referencia (con patrones aplicados) es [MediTrack](https://github.com/wareval0/MediTrack-API).
-
-## Qué incluye este scaffold
-
-- **NestJS 10** inicializado.
-- **Docker Compose** con Postgres 16-alpine.
-- **`ConfigModule`** con validación Joi al arranque (todas las variables requeridas están en `.env.example`).
-- **`ValidationPipe`** global con `whitelist`, `forbidNonWhitelisted`, `transform`.
-- **Swagger UI** montado en `/api/docs`.
-- **Módulo `health`** con `/api/health/live` y `/api/health/ready` como referencia mínima de un módulo NestJS.
-- **`@Public()` decorator** en [src/common/decorators/public.decorator.ts](src/common/decorators/public.decorator.ts) listo para usar cuando implementes auth.
-- **CLI de TypeORM** configurado en [src/database/data-source.ts](src/database/data-source.ts) — corre `npm run migration:generate` para crear migraciones.
-
-## Qué NO incluye (lo implementas tú)
-
-- Módulo `auth` (entidad `User`, register, login, JWT strategy, guards).
-- Entidades `Item` y `Loan`.
-- Cualquier migración.
-- Tests.
-
-Ver el enunciado para los pesos exactos de cada parte.
+Sistema de gestión de préstamos de biblioteca implementado con **NestJS 10**, **TypeORM 0.3** y **PostgreSQL 16**.
 
 ## Arranque rápido
 
 ```bash
-# 1) Variables de entorno
+# Paso 1: Copiar variables de entorno
 cp .env.example .env
 
-# 2) Base de datos
+# Paso 2: Levantar base de datos (PostgreSQL en puerto 5433)
 docker compose up -d
 
-# 3) Dependencias
+# Paso 3: Instalar dependencias
 npm install
 
-# 4) Build
-npm run build
+# Paso 4: Correr migraciones
+npm run migration:run
 
-# 5) Arrancar la app en modo desarrollo
+# Paso 5: Arrancar aplicación en modo desarrollo
 npm run start:dev
 ```
 
-Abre [http://localhost:3000/api/docs](http://localhost:3000/api/docs) y deberías ver el Swagger UI con el módulo `health` ya disponible.
+Swagger UI disponible en: **http://localhost:3000/api/docs**
+
+---
+
+## Credenciales de prueba
+
+Crea un usuario con `POST /api/auth/register`:
+
+```json
+{
+  "email": "admin@library.com",
+  "password": "Admin1234!",
+  "firstName": "Admin",
+  "lastName": "Library"
+}
+```
+
+> El usuario se crea con rol `member` por defecto. Para probar endpoints de admin/librarian, actualiza el rol directamente en la BD.
+
+Luego autentícate con `POST /api/auth/login` y usa el `access_token` en el header `Authorization: Bearer <token>`.
+
+---
 
 ## Scripts disponibles
 
-| Script                                                                     | Descripción                                                        |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| `npm run start:dev`                                                      | Arranca con hot reload.                                             |
-| `npm run start:prod`                                                     | Arranca el build de producción (requiere `npm run build` antes). |
-| `npm run build`                                                          | Compila TypeScript a `dist/`.                                     |
-| `npm run lint`                                                           | ESLint con autofix.                                                 |
-| `npm run format`                                                         | Prettier.                                                           |
-| `npm test`                                                               | Tests unitarios.                                                    |
-| `npm run test:cov`                                                       | Tests con coverage.                                                 |
-| `npm run test:e2e`                                                       | Tests e2e con `jest-e2e.json`.                                    |
-| `npm run migration:generate src/database/migrations/NombreDeLaMigracion` | Genera migración a partir del diff entre entidades y BD.           |
-| `npm run migration:run`                                                  | Aplica migraciones pendientes.                                      |
-| `npm run migration:revert`                                               | Revierte la última migración.                                     |
+| Script | Descripción |
+|---|---|
+| `npm run start:dev` | Arrancar con hot reload |
+| `npm run start:prod` | Arrancar build de producción |
+| `npm run build` | Compilar TypeScript → `dist/` |
+| `npm test` | Tests unitarios |
+| `npm run test:cov` | Tests con cobertura |
+| `npm run lint` | ESLint con autofix |
+| `npm run migration:generate src/database/migrations/NombreMigracion` | Generar migración desde diff de entidades |
+| `npm run migration:run` | Aplicar migraciones pendientes |
+| `npm run migration:revert` | Revertir última migración |
 
-## Estructura
+---
 
-```
-library-loans-scaffold/
-├── docker-compose.yml          # Postgres 16-alpine
-├── .env.example                # plantilla de variables (cópiala a .env)
-├── package.json
-├── tsconfig.json
-├── nest-cli.json
-├── src/
-│   ├── main.ts                 # bootstrap: ValidationPipe + Swagger + /api prefix
-│   ├── app.module.ts           # ConfigModule + TypeOrmModule + HealthModule
-│   ├── config/
-│   │   ├── configuration.ts    # AppConfig interface + factory
-│   │   └── validation.schema.ts # Joi schema
-│   ├── database/
-│   │   ├── data-source.ts      # DataSource para CLI de TypeORM
-│   │   └── migrations/         # (vacío — aquí van tus migraciones)
-│   ├── common/
-│   │   └── decorators/
-│   │       └── public.decorator.ts
-│   └── modules/
-│       └── health/
-│           ├── health.module.ts
-│           └── health.controller.ts
-└── test/
-    └── jest-e2e.json
-```
-
-## Aliases de path
-
-Configurados en `tsconfig.json` para imports limpios:
-
-```typescript
-import { ItemsModule } from '@modules/items/items.module';
-import { Public } from '@common/decorators/public.decorator';
-import configuration from '@config/configuration';
-import { AppDataSource } from '@database/data-source';
-```
-
-## Configuración: variables que el scaffold ya valida
-
-El `validationSchema` de Joi exige al arranque:
-
-- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` (todas requeridas, sin defaults).
-- `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` (mínimo 32 caracteres).
-- `BCRYPT_SALT_ROUNDS` (4-15, default 10).
-- `MAX_ACTIVE_LOANS` (default 3), `DAILY_FINE_RATE` (default 0.50), `MAX_LOAN_DAYS` (default 30) — usadas por las reglas de negocio que implementarás (ver enunciado §4.4).
-
-Si falta alguna requerida o no cumple el formato, la app **falla al arrancar** con un mensaje claro.
-
-## Siguiente paso
-
-Lee el enunciado completo:
+## Resetear base de datos y generar migración limpia
 
 ```bash
-open ../meditrack-api/docs/enunciado-parcial.md
+# Detener contenedor y eliminar volumen
+docker compose down -v
+
+# Volver a levantar BD limpia
+docker compose up -d
+
+# Generar migración desde cero (refleja estado actual de entidades)
+npm run migration:generate src/database/migrations/InitialSchema
+
+# Aplicar migración
+npm run migration:run
 ```
 
-Empieza por implementar la entidad `User` y el módulo `auth` (§4.1 del enunciado). Sin auth, los demás endpoints no se pueden probar.
+---
 
-¡Éxitos!
+## Decisión sobre transición a 'overdue'
 
-María Inés Velásquez 
+**Implementación elegida:** Actualización automática al consultar `GET /loans`
 
-202224325
+Cuando se llama a `findAll()`, el servicio ejecuta primero un `UPDATE` bulk antes de devolver resultados:
+
+```sql
+UPDATE loans
+SET status = 'overdue'
+WHERE status = 'active'
+  AND "dueAt" < NOW()
+  AND "returnedAt" IS NULL;
+```
+
+**Razones:**
+- No requiere cron job ni worker separado — menor complejidad operacional.
+- Garantiza consistencia inmediata: el consumidor de la API siempre ve estados actualizados.
+- Una sola query bulk es eficiente (no carga entidades en memoria).
+
+**Alternativa considerada:** filtrar dinámicamente (`WHERE dueAt < NOW() → mostrar como overdue`) sin escribir en BD. No implementada porque no actualiza el estado persistente y un `GET /loans/:id` individual devolvería `active` aunque ya estuviera vencido.
+
+---
+
+## Reglas de negocio implementadas
+
+| Regla | Descripción | HTTP |
+|---|---|---|
+| **R1** | `dueAt` debe ser fecha futura y el período no puede superar `MAX_LOAN_DAYS` | 400 |
+| **R2** | Un ítem solo puede tener un préstamo `active` u `overdue` a la vez | 409 |
+| **R3** | Un usuario no puede tener ≥ `MAX_ACTIVE_LOANS` préstamos `active`/`overdue` | 409 |
+| **R4** | Multa = `Math.ceil(díasVencidos) × DAILY_FINE_RATE`; status siempre `returned` al devolver | — |
+| **R5** | FSM: no se puede devolver un préstamo `returned`/`lost`; solo `active`/`overdue` se pueden marcar como `lost` | 400 |
+
+---
+
+## 🎁 Bonos implementados
+
+- [ ] **B1:** Cola FIFO de reservas (+8%)
+- [ ] **B2:** Refresh tokens stateful (+5%)
+- [ ] **B3:** Pipeline GitHub Actions (+4%)
+- [ ] **B4:** Tests e2e + matriz FSM (+3%)
+
+_Esta lista se actualizará según los bonos implementados._
+
+---
+
+## Estructura del proyecto
+
+```
+src/
+├── main.ts                        # Bootstrap: ValidationPipe + Swagger + prefix /api
+├── app.module.ts                  # ConfigModule + TypeOrmModule + todos los módulos
+├── config/
+│   ├── configuration.ts           # AppConfig factory
+│   └── validation.schema.ts       # Joi: valida env vars al arranque
+├── database/
+│   ├── data-source.ts             # DataSource para CLI TypeORM
+│   └── migrations/                # Migraciones generadas
+├── common/
+│   ├── decorators/public.decorator.ts
+│   ├── filters/http-exception.filter.ts
+│   └── interceptors/logging.interceptor.ts
+└── modules/
+    ├── auth/                      # JWT + register/login
+    ├── users/                     # Entidad User
+    ├── items/                     # Entidad Item (code, title, type)
+    ├── loans/                     # Entidad Loan (ManyToOne item, FSM status)
+    └── health/                    # /api/health/live y /ready
+```
+
+---
+
+María Inés Velásquez — 202224325
